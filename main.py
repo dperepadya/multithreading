@@ -8,36 +8,37 @@ def get_sum_of_digits(number):
     return sum(int(digit) for digit in str(number))
 
 
-def check_lucky(start_n, end_n):
+def check_lucky(start_n, end_n, digits=6):
     counter = 0
-    for n in range(start_n, min(end_n, pow(10, 6) - 1) + 1):
-        num_str = str(n).zfill(6)
-        left_part = num_str[:3]
-        right_part = num_str[3:]
+    for n in range(start_n, min(end_n, pow(10, digits) - 1) + 1):
+        num_str = str(n).zfill(digits)
+        left_part_len = digits // 2
+        left_part = num_str[:left_part_len]
+        right_part = num_str[left_part_len:]
         # print(n, left_part, right_part)
         if get_sum_of_digits(left_part) == get_sum_of_digits(right_part):
             counter += 1
     return counter
 
 
-def check_lucky_thread(start_n, end_n, result, thread_id):
+def check_lucky_thread(start_n, end_n, digits, result, thread_id):
     print(f'tread {thread_id} started')
-    result[thread_id] = check_lucky(start_n, end_n)
+    result[thread_id] = check_lucky(start_n, end_n, digits)
     print(f'tread {thread_id} ended')
 
 
-def check_lucky_process(start_n, end_n, queue, process_id):
+def check_lucky_process(start_n, end_n, digits, queue, process_id):
     print(f'tread {process_id} started')
-    queue.put((process_id, check_lucky(start_n, end_n)))
+    queue.put((process_id, check_lucky(start_n, end_n, digits)))
     print(f'tread {process_id} ended')
 
 
-def multithreads_handler(ranges):
+def multithreads_handler(ranges, digits):
     results = {}
     threads = []
     start_time = time.perf_counter()
     for i, (start_num, end_num) in enumerate(ranges):
-        thread = Thread(target=check_lucky_thread, args=(start_num, end_num, results, i))
+        thread = Thread(target=check_lucky_thread, args=(start_num, end_num, digits, results, i))
         threads.append(thread)
         thread.start()
 
@@ -49,13 +50,13 @@ def multithreads_handler(ranges):
     return sum(results.values()), (end_time - start_time) * 1000
 
 
-def multiprocess_handler(ranges):
+def multiprocess_handler(ranges, digits):
     queue = multiprocessing.Queue()
     processes = []
 
     start_time = time.perf_counter()
     for i, (start_num, end_num) in enumerate(ranges):
-        process = Process(target=check_lucky_process, args=(start_num, end_num, queue, i))
+        process = Process(target=check_lucky_process, args=(start_num, end_num, digits, queue, i))
         processes.append(process)
         process.start()
 
@@ -72,25 +73,39 @@ def multiprocess_handler(ranges):
     return sum(results.values()), (end_time - start_time) * 1000
 
 
-if __name__ == '__main__':
-    # brute_force_ranges = [(0, 999999)]
-    # brute_force_ranges = [(0, 500000), (500001, 999999)]
-    brute_force_ranges = [(0, 333333), (333334, 666667), (666668, 999999)]
+def split_range(digits, subranges_num):
+    max_value = 10 ** digits - 1
+    step = (max_value + 1) // subranges_num
+    subranges = []
 
-    print('Get the number of lucky tickets')
+    for i in range(subranges_num):
+        start = i * step
+        end = (i + 1) * step - 1 if i != subranges_num - 1 else max_value
+        subranges.append((start, end))
+
+    return subranges
+
+
+if __name__ == '__main__':
+    length = 8
+    ranges_num = 3
+
+    brute_force_ranges = split_range(length, ranges_num)
+
+    print(f'Get the number of lucky tickets with {length} digits')
     print('1. multithreading test')
 
-    lucky_tickets_num, duration_ms = multithreads_handler(brute_force_ranges)
+    lucky_tickets_num, duration_ms = multithreads_handler(brute_force_ranges, length)
 
     print(f'number of lucky tickets: {lucky_tickets_num}')
-    print(f'number of threads: {len(brute_force_ranges)}')
+    print(f'number of threads: {ranges_num}')
     print(f'computation time: {duration_ms:.2f} ms')
 
     print('1. multiprocesses test')
 
-    lucky_tickets_num, duration_ms = multiprocess_handler(brute_force_ranges)
+    lucky_tickets_num, duration_ms = multiprocess_handler(brute_force_ranges, length)
     print(f'number of lucky tickets: {lucky_tickets_num}')
-    print(f'number of threads: {len(brute_force_ranges)}')
+    print(f'number of threads: {ranges_num}')
     print(f'computation time: {duration_ms:.2f} ms')
 
 
