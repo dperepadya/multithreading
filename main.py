@@ -22,15 +22,15 @@ def check_lucky(start_n, end_n, digits=6):
 
 
 def check_lucky_thread(start_n, end_n, digits, result, thread_id):
-    print(f'tread {thread_id} started')
+    print(f'thread {thread_id} started')
     result[thread_id] = check_lucky(start_n, end_n, digits)
-    print(f'tread {thread_id} ended')
+    print(f'thread {thread_id} ended')
 
 
 def check_lucky_process(start_n, end_n, digits, queue, process_id):
-    print(f'tread {process_id} started')
+    print(f'process {process_id} started')
     queue.put((process_id, check_lucky(start_n, end_n, digits)))
-    print(f'tread {process_id} ended')
+    print(f'process {process_id} ended')
 
 
 def multithreads_handler(ranges, digits):
@@ -105,7 +105,7 @@ if __name__ == '__main__':
 
     lucky_tickets_num, duration_ms = multiprocess_handler(brute_force_ranges, length)
     print(f'number of lucky tickets: {lucky_tickets_num}')
-    print(f'number of threads: {ranges_num}')
+    print(f'number of processes: {ranges_num}')
     print(f'computation time: {duration_ms:.2f} ms')
 
 
