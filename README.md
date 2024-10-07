@@ -17,4 +17,4 @@ This project implements a Python program to count the number of lucky tickets us
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-username/lucky-tickets-calculator.git
+   git clone https://github.com/dperepadya/multithreading.git
